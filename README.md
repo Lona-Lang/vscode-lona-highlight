@@ -17,6 +17,15 @@
 2. 按 `F5` 启动 Extension Development Host。
 3. 在新窗口里打开任意 `.lo` 文件检查高亮效果。
 
+## 发布到 Marketplace
+
+1. 在 Visual Studio Marketplace 创建 publisher，并确认它的 ID 和 `package.json` 里的 `publisher` 一致。
+2. 创建 Azure DevOps PAT，至少给 `Marketplace -> Manage` 权限。
+3. 安装发布工具：`npm install -g @vscode/vsce`
+4. 在仓库根目录登录：`vsce login tastynoob`
+5. 先打包检查：`npm run package`
+6. 发布：`vsce publish --no-dependencies`，或者直接用 `npm run publish:patch`
+
 ## 说明
 
 这版是按当前 parser/lexer 实现做的第一版 TextMate grammar，优先保证现有语言特性可用。后续如果 `../lona/grammar` 有语法扩展，直接补 `syntaxes/lona.tmLanguage.json` 即可。

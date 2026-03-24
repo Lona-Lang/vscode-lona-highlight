@@ -3,7 +3,7 @@
   "displayName": "Lona Highlight",
   "description": "Syntax highlighting and editor language support for the Lona programming language.",
   "version": "0.0.1",
-  "publisher": "lona-lang",
+  "publisher": "tastynoob",
   "engines": {
     "vscode": "^1.88.0"
   },
@@ -15,6 +15,25 @@
     "syntax-highlighting",
     "compiler"
   ],
+  "homepage": "https://github.com/tastynoob/vscode-lona-highlight#readme",
+  "bugs": {
+    "url": "https://github.com/tastynoob/vscode-lona-highlight/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tastynoob/vscode-lona-highlight.git"
+  },
+  "files": [
+    "syntaxes/**",
+    "language-configuration.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "package": "vsce package --no-dependencies",
+    "publish:patch": "vsce publish patch --no-dependencies",
+    "publish:minor": "vsce publish minor --no-dependencies"
+  },
   "contributes": {
     "languages": [
       {
@@ -36,5 +55,8 @@
         "path": "./syntaxes/lona.tmLanguage.json"
       }
     ]
+  },
+  "devDependencies": {
+    "@vscode/vsce": "^3.7.1"
   }
 }
