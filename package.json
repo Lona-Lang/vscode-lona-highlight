@@ -1,0 +1,40 @@
+{
+  "name": "lona-highlight",
+  "displayName": "Lona Highlight",
+  "description": "Syntax highlighting and editor language support for the Lona programming language.",
+  "version": "0.0.1",
+  "publisher": "lona-lang",
+  "engines": {
+    "vscode": "^1.88.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "lona",
+    "syntax-highlighting",
+    "compiler"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "lona",
+        "aliases": [
+          "Lona",
+          "lona"
+        ],
+        "extensions": [
+          ".lo"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lona",
+        "scopeName": "source.lona",
+        "path": "./syntaxes/lona.tmLanguage.json"
+      }
+    ]
+  }
+}

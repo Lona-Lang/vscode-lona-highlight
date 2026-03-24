@@ -1,0 +1,493 @@
+{
+  "name": "Lona",
+  "scopeName": "source.lona",
+  "fileTypes": [
+    "lo"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#tags"
+    },
+    {
+      "include": "#import-statement"
+    },
+    {
+      "include": "#function-declaration"
+    },
+    {
+      "include": "#struct-declaration"
+    },
+    {
+      "include": "#variable-declaration"
+    },
+    {
+      "include": "#ref-declaration"
+    },
+    {
+      "include": "#field-declaration"
+    },
+    {
+      "include": "#cast-expression"
+    },
+    {
+      "include": "#function-pointer-reference"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numeric-literals"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#builtin-types"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#self"
+    },
+    {
+      "include": "#member-function-call"
+    },
+    {
+      "include": "#function-call"
+    },
+    {
+      "include": "#tuple-member"
+    },
+    {
+      "include": "#member-access"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.lona",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.lona",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.lona"
+            }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.lona"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.lona",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.lona",
+          "begin": "'",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.lona"
+            }
+          },
+          "end": "'",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.lona"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.lona",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numeric-literals": {
+      "patterns": [
+        {
+          "name": "constant.numeric.lona",
+          "match": "\\b(?:0b[01](?:_?[01])*|0o[0-7](?:_?[0-7])*|0x[0-9A-Fa-f](?:_?[0-9A-Fa-f])*|[0-9](?:_?[0-9])*\\.[0-9](?:_?[0-9])*|[0-9](?:_?[0-9])*)(?:_(?:u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64))?\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.lona",
+          "match": "\\b(?:true|false)\\b"
+        },
+        {
+          "name": "constant.language.null.lona",
+          "match": "\\bnull\\b"
+        }
+      ]
+    },
+    "builtin-types": {
+      "patterns": [
+        {
+          "name": "storage.type.builtin.lona",
+          "match": "\\b(?:type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.declaration.lona",
+          "match": "\\b(?:def|struct|var)\\b"
+        },
+        {
+          "name": "keyword.control.lona",
+          "match": "\\b(?:ret|break|continue|if|else|for|import)\\b"
+        },
+        {
+          "name": "storage.modifier.lona",
+          "match": "\\b(?:ref|const|cast)\\b"
+        }
+      ]
+    },
+    "self": {
+      "patterns": [
+        {
+          "name": "variable.language.self.lona",
+          "match": "\\bself\\b"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.separator.lona",
+          "match": "[{}\\[\\](),.:#]"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.lona",
+          "match": "&<|<<=|>>=|\\+=|-=|\\*=|/=|%=|&=|\\^=|\\|=|==|!=|<=|>=|<<|>>|&&|\\|\\||[+\\-*/%!~<>&^|=]"
+        }
+      ]
+    },
+    "tags": {
+      "begin": "#\\[",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.annotation.begin.lona"
+        }
+      },
+      "end": "\\]",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.annotation.end.lona"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#strings"
+        },
+        {
+          "include": "#numeric-literals"
+        },
+        {
+          "include": "#builtin-types"
+        },
+        {
+          "name": "entity.name.tag.lona",
+          "match": "\\b(?:extern|repr)\\b"
+        },
+        {
+          "name": "variable.annotation.argument.lona",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        },
+        {
+          "name": "punctuation.separator.annotation.lona",
+          "match": ","
+        }
+      ]
+    },
+    "import-statement": {
+      "patterns": [
+        {
+          "match": "\\b(import)\\b\\s+([A-Za-z0-9_./-]+)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.import.lona"
+            },
+            "2": {
+              "name": "entity.name.namespace.import.lona"
+            }
+          }
+        }
+      ]
+    },
+    "struct-declaration": {
+      "patterns": [
+        {
+          "match": "\\b(struct)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.struct.lona"
+            },
+            "2": {
+              "name": "entity.name.type.struct.lona"
+            }
+          }
+        }
+      ]
+    },
+    "function-declaration": {
+      "begin": "\\b(def)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.function.lona"
+        },
+        "2": {
+          "name": "entity.name.function.lona"
+        }
+      },
+      "end": "(?=\\{|$)",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "begin": "\\(",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.section.parameters.begin.lona"
+            }
+          },
+          "end": "\\)",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.section.parameters.end.lona"
+            }
+          },
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "name": "storage.modifier.ref.lona",
+              "match": "\\bref\\b"
+            },
+            {
+              "name": "variable.parameter.lona",
+              "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s+(?:<|\\(|[A-Za-z_][A-Za-z0-9_]*))"
+            },
+            {
+              "include": "#type-expression"
+            },
+            {
+              "name": "punctuation.separator.parameter.lona",
+              "match": ","
+            }
+          ]
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "variable-declaration": {
+      "begin": "\\b(var)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.variable.lona"
+        },
+        "2": {
+          "name": "variable.other.definition.lona"
+        }
+      },
+      "end": "(?=\\s*(?:=|$))",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "ref-declaration": {
+      "begin": "^\\s*(ref)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.modifier.ref.lona"
+        },
+        "2": {
+          "name": "variable.other.definition.lona"
+        }
+      },
+      "end": "(?=\\s*(?:=|$))",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "field-declaration": {
+      "begin": "^\\s*(?!var\\b|ref\\b|def\\b|if\\b|for\\b|ret\\b|break\\b|continue\\b|import\\b|struct\\b|else\\b)([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s+(?:<|\\(|[A-Za-z_][A-Za-z0-9_]*))",
+      "beginCaptures": {
+        "1": {
+          "name": "variable.other.member.definition.lona"
+        }
+      },
+      "end": "$",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "cast-expression": {
+      "begin": "\\b(cast)(\\[)",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.operator.cast.lona"
+        },
+        "2": {
+          "name": "punctuation.section.brackets.begin.lona"
+        }
+      },
+      "end": "\\]",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.brackets.end.lona"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "function-pointer-reference": {
+      "begin": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b\\s*(&<)",
+      "beginCaptures": {
+        "1": {
+          "name": "entity.name.function.lona"
+        },
+        "2": {
+          "name": "keyword.operator.function-pointer.lona"
+        }
+      },
+      "end": ">",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.type-arguments.end.lona"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "type-expression": {
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#numeric-literals"
+        },
+        {
+          "include": "#builtin-types"
+        },
+        {
+          "name": "storage.modifier.ref.lona",
+          "match": "\\bref\\b"
+        },
+        {
+          "name": "storage.modifier.const.lona",
+          "match": "\\bconst\\b"
+        },
+        {
+          "name": "entity.name.type.lona",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*\\b"
+        },
+        {
+          "name": "keyword.operator.pointer.lona",
+          "match": "\\*"
+        },
+        {
+          "name": "punctuation.separator.type.lona",
+          "match": "[<>\\[\\](),:]"
+        },
+        {
+          "name": "keyword.operator.lona",
+          "match": "[+\\-*/%!~<>&^|=]"
+        }
+      ]
+    },
+    "member-function-call": {
+      "patterns": [
+        {
+          "name": "entity.name.function.member.lona",
+          "match": "(?<=\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "function-call": {
+      "patterns": [
+        {
+          "name": "entity.name.function.call.lona",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "tuple-member": {
+      "patterns": [
+        {
+          "name": "variable.other.member.tuple.lona",
+          "match": "(?<=\\.)_[0-9]+\\b"
+        }
+      ]
+    },
+    "member-access": {
+      "patterns": [
+        {
+          "name": "variable.other.member.lona",
+          "match": "(?<=\\.)[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
