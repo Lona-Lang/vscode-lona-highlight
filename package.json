@@ -2,7 +2,7 @@
   "name": "lona-highlight",
   "displayName": "Lona Highlight",
   "description": "Syntax highlighting and editor language support for the Lona programming language.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "tastynoob",
   "engines": {
     "vscode": "^1.88.0"
@@ -16,6 +16,10 @@
     "compiler"
   ],
   "homepage": "https://github.com/tastynoob/vscode-lona-highlight#readme",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:lona"
+  ],
   "bugs": {
     "url": "https://github.com/tastynoob/vscode-lona-highlight/issues"
   },
@@ -24,6 +28,8 @@
     "url": "https://github.com/tastynoob/vscode-lona-highlight.git"
   },
   "files": [
+    "extension.js",
+    "lona-semantic.js",
     "syntaxes/**",
     "language-configuration.json",
     "README.md",
@@ -35,6 +41,11 @@
     "publish:minor": "vsce publish minor --no-dependencies"
   },
   "contributes": {
+    "configurationDefaults": {
+      "[lona]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
     "languages": [
       {
         "id": "lona",

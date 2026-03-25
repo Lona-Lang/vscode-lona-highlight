@@ -54,6 +54,12 @@
       "include": "#self"
     },
     {
+      "include": "#member-owner"
+    },
+    {
+      "include": "#variable-reference"
+    },
+    {
       "include": "#member-function-call"
     },
     {
@@ -298,12 +304,15 @@
               "include": "#comments"
             },
             {
-              "name": "storage.modifier.ref.lona",
-              "match": "\\bref\\b"
-            },
-            {
-              "name": "variable.parameter.lona",
-              "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s+(?:<|\\(|[A-Za-z_][A-Za-z0-9_]*))"
+              "match": "(?:(?<=\\()|(?<=,))\\s*(ref\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*)",
+              "captures": {
+                "1": {
+                  "name": "storage.modifier.ref.lona"
+                },
+                "2": {
+                  "name": "variable.parameter.lona"
+                }
+              }
             },
             {
               "include": "#type-expression"
@@ -462,6 +471,22 @@
         {
           "name": "entity.name.function.member.lona",
           "match": "(?<=\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*\\()"
+        }
+      ]
+    },
+    "member-owner": {
+      "patterns": [
+        {
+          "name": "variable.other.object.lona",
+          "match": "\\b(?!(?:def|struct|var|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\.)"
+        }
+      ]
+    },
+    "variable-reference": {
+      "patterns": [
+        {
+          "name": "variable.other.readwrite.lona",
+          "match": "\\b(?!(?:def|struct|var|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)(?<!\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?!\\s*(?:[:.(]|&<))"
         }
       ]
     },
