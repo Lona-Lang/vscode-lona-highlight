@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.3
+
+- Expanded TextMate grammar coverage for `set`, `const`, `ref`, `:=`, named arguments, character literals, function pointer references, and richer type expressions.
+- Reworked semantic token analysis to handle multiline signatures, scope-aware declarations, complex type strings, methods, properties, readonly bindings, and namespace-qualified symbols.
+- Added semantic regression tests covering complex Lona syntax and updated project documentation for development and release workflow.
+
 ## 0.0.2
 
 - Added semantic tokens support to distinguish imported module names from variables.

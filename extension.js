@@ -7,7 +7,7 @@ function activate(context) {
 
   const legend = new vscode.SemanticTokensLegend(
     ["namespace", "type", "function", "variable", "parameter"],
-    ["declaration"]
+    ["declaration", "readonly"]
   );
 
   const provider = {

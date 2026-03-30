@@ -24,7 +24,16 @@
       "include": "#variable-declaration"
     },
     {
+      "include": "#const-declaration"
+    },
+    {
       "include": "#ref-declaration"
+    },
+    {
+      "include": "#short-variable-declaration"
+    },
+    {
+      "include": "#parameter-declaration"
     },
     {
       "include": "#field-declaration"
@@ -36,7 +45,13 @@
       "include": "#function-pointer-reference"
     },
     {
+      "include": "#named-argument"
+    },
+    {
       "include": "#strings"
+    },
+    {
+      "include": "#character-literals"
     },
     {
       "include": "#numeric-literals"
@@ -106,28 +121,32 @@
           "patterns": [
             {
               "name": "constant.character.escape.lona",
-              "match": "\\\\."
+              "match": "\\\\(?:[ntr0\\\\'\"x]|x[0-9A-Fa-f]{1,2})"
             }
           ]
-        },
+        }
+      ]
+    },
+    "character-literals": {
+      "patterns": [
         {
-          "name": "string.quoted.single.lona",
+          "name": "constant.character.lona",
           "begin": "'",
           "beginCaptures": {
             "0": {
-              "name": "punctuation.definition.string.begin.lona"
+              "name": "punctuation.definition.character.begin.lona"
             }
           },
           "end": "'",
           "endCaptures": {
             "0": {
-              "name": "punctuation.definition.string.end.lona"
+              "name": "punctuation.definition.character.end.lona"
             }
           },
           "patterns": [
             {
               "name": "constant.character.escape.lona",
-              "match": "\\\\."
+              "match": "\\\\(?:[ntr0\\\\'\"x]|x[0-9A-Fa-f]{1,2})"
             }
           ]
         }
@@ -137,7 +156,7 @@
       "patterns": [
         {
           "name": "constant.numeric.lona",
-          "match": "\\b(?:0b[01](?:_?[01])*|0o[0-7](?:_?[0-7])*|0x[0-9A-Fa-f](?:_?[0-9A-Fa-f])*|[0-9](?:_?[0-9])*\\.[0-9](?:_?[0-9])*|[0-9](?:_?[0-9])*)(?:_(?:u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64))?\\b"
+          "match": "\\b(?:[0-9]+\\.[0-9]+|[0-9]+)\\b"
         }
       ]
     },
@@ -164,16 +183,36 @@
     "keywords": {
       "patterns": [
         {
-          "name": "keyword.declaration.lona",
-          "match": "\\b(?:def|struct|var)\\b"
+          "name": "storage.type.function.lona",
+          "match": "\\bdef\\b"
         },
         {
-          "name": "keyword.control.lona",
-          "match": "\\b(?:ret|break|continue|if|else|for|import)\\b"
+          "name": "storage.type.struct.lona",
+          "match": "\\bstruct\\b"
+        },
+        {
+          "name": "storage.type.variable.lona",
+          "match": "\\bvar\\b"
+        },
+        {
+          "name": "keyword.control.conditional.lona",
+          "match": "\\b(?:if|else|for)\\b"
+        },
+        {
+          "name": "keyword.control.flow.lona",
+          "match": "\\b(?:ret|break|continue)\\b"
+        },
+        {
+          "name": "keyword.control.import.lona",
+          "match": "\\bimport\\b"
         },
         {
           "name": "storage.modifier.lona",
-          "match": "\\b(?:ref|const|cast)\\b"
+          "match": "\\b(?:set|ref|const)\\b"
+        },
+        {
+          "name": "keyword.operator.cast.lona",
+          "match": "\\bcast\\b"
         }
       ]
     },
@@ -189,7 +228,11 @@
       "patterns": [
         {
           "name": "punctuation.separator.lona",
-          "match": "[{}\\[\\](),.:#]"
+          "match": "[{}\\[\\](),:#]"
+        },
+        {
+          "name": "punctuation.accessor.dot.lona",
+          "match": "\\."
         }
       ]
     },
@@ -220,6 +263,9 @@
         },
         {
           "include": "#strings"
+        },
+        {
+          "include": "#character-literals"
         },
         {
           "include": "#numeric-literals"
@@ -262,7 +308,7 @@
           "match": "\\b(struct)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
           "captures": {
             "1": {
-              "name": "keyword.declaration.struct.lona"
+              "name": "storage.type.struct.lona"
             },
             "2": {
               "name": "entity.name.type.struct.lona"
@@ -272,12 +318,15 @@
       ]
     },
     "function-declaration": {
-      "begin": "\\b(def)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "begin": "\\b(set\\b\\s+)?(def)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": {
-          "name": "keyword.declaration.function.lona"
+          "name": "storage.modifier.set.lona"
         },
         "2": {
+          "name": "storage.type.function.lona"
+        },
+        "3": {
           "name": "entity.name.function.lona"
         }
       },
@@ -304,15 +353,28 @@
               "include": "#comments"
             },
             {
-              "match": "(?:(?<=\\()|(?<=,))\\s*(ref\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*)",
-              "captures": {
-                "1": {
-                  "name": "storage.modifier.ref.lona"
-                },
-                "2": {
-                  "name": "variable.parameter.lona"
-                }
-              }
+              "include": "#parameter-declaration"
+            },
+            {
+              "include": "#named-argument"
+            },
+            {
+              "include": "#cast-expression"
+            },
+            {
+              "include": "#function-pointer-reference"
+            },
+            {
+              "include": "#strings"
+            },
+            {
+              "include": "#character-literals"
+            },
+            {
+              "include": "#numeric-literals"
+            },
+            {
+              "include": "#constants"
             },
             {
               "include": "#type-expression"
@@ -324,7 +386,13 @@
           ]
         },
         {
-          "include": "#type-expression"
+          "begin": "(?<=\\))(?=\\s*(?:<|\\(|\\b(?:type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool)\\b|[A-Za-z_][A-Za-z0-9_]*))",
+          "end": "(?=\\{|$)",
+          "patterns": [
+            {
+              "include": "#type-expression"
+            }
+          ]
         }
       ]
     },
@@ -332,10 +400,30 @@
       "begin": "\\b(var)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": {
-          "name": "keyword.declaration.variable.lona"
+          "name": "storage.type.variable.lona"
         },
         "2": {
           "name": "variable.other.definition.lona"
+        }
+      },
+      "end": "(?=\\s*(?:=|$))",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "const-declaration": {
+      "begin": "\\b(const)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.modifier.const.lona"
+        },
+        "2": {
+          "name": "variable.other.constant.definition.lona"
         }
       },
       "end": "(?=\\s*(?:=|$))",
@@ -368,25 +456,83 @@
         }
       ]
     },
-    "field-declaration": {
-      "begin": "^\\s*(?!var\\b|ref\\b|def\\b|if\\b|for\\b|ret\\b|break\\b|continue\\b|import\\b|struct\\b|else\\b)([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s+(?:<|\\(|[A-Za-z_][A-Za-z0-9_]*))",
-      "beginCaptures": {
-        "1": {
-          "name": "variable.other.member.definition.lona"
-        }
-      },
-      "end": "$",
+    "short-variable-declaration": {
       "patterns": [
         {
-          "include": "#comments"
-        },
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\b\\s*(:)(=)",
+          "captures": {
+            "1": {
+              "name": "variable.other.definition.lona"
+            },
+            "2": {
+              "name": "punctuation.separator.key-value.lona"
+            },
+            "3": {
+              "name": "keyword.operator.assignment.lona"
+            }
+          }
+        }
+      ]
+    },
+    "parameter-declaration": {
+      "patterns": [
         {
-          "include": "#type-expression"
+          "match": "(?:(?<=\\()|(?<=,))\\s*(ref\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s+(?:<|\\(|\\b(?:type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool)\\b|[A-Za-z_][A-Za-z0-9_]*(?:\\.|\\b)))",
+          "captures": {
+            "1": {
+              "name": "storage.modifier.ref.lona"
+            },
+            "2": {
+              "name": "variable.parameter.lona"
+            }
+          }
+        }
+      ]
+    },
+    "field-declaration": {
+      "patterns": [
+        {
+          "begin": "^\\s*(?!set\\b\\s+def\\b)(?!(?:var|const|ref|def|if|for|ret|break|continue|import|struct|else)\\b)(set\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*|_)(?=\\s+(?:<|\\(|\\b(?:type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool)\\b|[A-Za-z_][A-Za-z0-9_]*(?:\\.|\\b)))",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.modifier.set.lona"
+            },
+            "2": {
+              "name": "variable.other.member.definition.lona"
+            }
+          },
+          "end": "$",
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#type-expression"
+            }
+          ]
+        }
+      ]
+    },
+    "named-argument": {
+      "patterns": [
+        {
+          "match": "(?:(?<=\\()|(?<=,))\\s*(ref\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*)\\b\\s*(=)",
+          "captures": {
+            "1": {
+              "name": "storage.modifier.ref.lona"
+            },
+            "2": {
+              "name": "variable.parameter.argument.lona"
+            },
+            "3": {
+              "name": "keyword.operator.assignment.lona"
+            }
+          }
         }
       ]
     },
     "cast-expression": {
-      "begin": "\\b(cast)(\\[)",
+      "begin": "\\b(cast)(\\s*\\[)",
       "beginCaptures": {
         "1": {
           "name": "keyword.operator.cast.lona"
@@ -435,6 +581,12 @@
           "include": "#comments"
         },
         {
+          "include": "#strings"
+        },
+        {
+          "include": "#character-literals"
+        },
+        {
           "include": "#numeric-literals"
         },
         {
@@ -449,8 +601,19 @@
           "match": "\\bconst\\b"
         },
         {
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)(\\.)",
+          "captures": {
+            "1": {
+              "name": "entity.name.namespace.lona"
+            },
+            "2": {
+              "name": "punctuation.accessor.dot.lona"
+            }
+          }
+        },
+        {
           "name": "entity.name.type.lona",
-          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*\\b"
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
         },
         {
           "name": "keyword.operator.pointer.lona",
@@ -478,7 +641,7 @@
       "patterns": [
         {
           "name": "variable.other.object.lona",
-          "match": "\\b(?!(?:def|struct|var|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\.)"
+          "match": "\\b(?!(?:def|struct|var|set|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\.)"
         }
       ]
     },
@@ -486,7 +649,7 @@
       "patterns": [
         {
           "name": "variable.other.readwrite.lona",
-          "match": "\\b(?!(?:def|struct|var|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)(?<!\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?!\\s*(?:[:.(]|&<))"
+          "match": "\\b(?!(?:def|struct|var|set|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)(?<!\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?!\\s*(?:[:.(]|&<))"
         }
       ]
     },
