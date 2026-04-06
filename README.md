@@ -14,12 +14,13 @@
 
 - `.lo` 文件类型识别与基础编辑器配置
 - `//` 注释、字符串、字符与数值字面量
-- `def`、`struct`、`var`、`const`、`ref`、`set`、`if`、`for`、`ret` 等关键字
+- `def`、`struct`、`trait`、`impl`、`var`、`const`、`ref`、`set`、`dyn`、`if`、`for`、`ret` 等关键字
 - `#[extern]`、`#[repr "C"]` 等 tag line
-- 内建类型、自定义类型、点分类型、tuple type、函数指针类型
+- 内建类型、自定义类型、点分类型、tuple type、函数指针类型、`Trait dyn`
+- `struct Box[T Hash]`、`def hash_one[T Hash](...)`、`impl[T Hash] Box[T]: Hash` 等单 bound 泛型声明头
 - 数组、指针、`const` 后缀等复杂类型字符串
-- `cast[T](...)`、`foo&<...>`、成员访问、调用、命名参数与主要运算符
-- 基于语义 token 的模块名、类型名、函数、方法、字段、变量、参数区分
+- `cast[T](...)`、`foo&<...>`、`@id[T]`、成员访问、调用、命名参数与主要运算符
+- 基于语义 token 的模块名、trait / struct / type parameter、函数、方法、字段、变量、参数区分
 
 ## 实现说明
 
@@ -46,7 +47,7 @@
 npm test
 ```
 
-该测试主要覆盖多行函数签名、函数指针、`cast[T]`、命名参数、tuple 成员、命名空间访问和只读绑定等场景。
+该测试主要覆盖多行函数签名、trait / impl、泛型 type parameter、函数指针、`cast[T]`、`Trait dyn`、命名参数、tuple 成员、命名空间访问和只读绑定等场景。
 
 ## 打包与发布
 
@@ -82,11 +83,3 @@ vsce publish --no-dependencies
 ```bash
 npm run publish:patch
 ```
-
-## 维护建议
-
-如果 Lona 语法后续发生扩展，建议按以下顺序维护：
-
-1. 先更新 `syntaxes/lona.tmLanguage.json`，确保新增词法结构具备基础高亮。
-2. 再更新 `lona-semantic.js`，补充声明、作用域和符号分类规则。
-3. 最后补充或调整 `tests/semantic.test.js`，避免高亮行为回退。

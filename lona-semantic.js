@@ -3,7 +3,10 @@
 const KEYWORDS = new Set([
   "def",
   "struct",
+  "trait",
+  "impl",
   "var",
+  "global",
   "set",
   "ret",
   "break",
@@ -14,6 +17,7 @@ const KEYWORDS = new Set([
   "import",
   "ref",
   "const",
+  "dyn",
   "cast",
   "true",
   "false",
@@ -386,6 +390,69 @@ function resolveSymbol(rootScope, ordinal, name) {
   return null;
 }
 
+function getSymbolClassification(symbol) {
+  if (!symbol) {
+    return null;
+  }
+
+  if (symbol.kind === "namespace") {
+    return { type: "namespace", modifiers: [] };
+  }
+  if (symbol.kind === "type") {
+    return { type: "type", modifiers: [] };
+  }
+  if (symbol.kind === "function") {
+    return { type: "function", modifiers: [] };
+  }
+  if (symbol.kind === "parameter") {
+    return { type: "parameter", modifiers: symbol.readonly ? ["readonly"] : [] };
+  }
+  if (symbol.kind === "variable") {
+    return { type: "variable", modifiers: symbol.readonly ? ["readonly"] : [] };
+  }
+
+  return null;
+}
+
+function findMatchingToken(tokens, startOrdinal, openValue, closeValue) {
+  let depth = 0;
+  for (let i = startOrdinal; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token.value === openValue) {
+      depth++;
+    } else if (token.value === closeValue) {
+      depth--;
+      if (depth === 0) {
+        return token;
+      }
+    }
+  }
+
+  return null;
+}
+
+function nextAfterBracketSuffix(tokens, ordinal) {
+  let next = nextSignificant(tokens, ordinal);
+  while (isTokenValue(next, "[")) {
+    const closing = findMatchingToken(tokens, next.ordinal, "[", "]");
+    if (!closing) {
+      return null;
+    }
+    next = nextSignificant(tokens, closing.ordinal);
+  }
+  return next;
+}
+
+function isTypeStartToken(token) {
+  return Boolean(
+    token &&
+      (token.kind === "builtinType" ||
+        token.kind === "identifier" ||
+        token.value === "<" ||
+        token.value === "(")
+  );
+}
+
 function markSelectorTokens(state, parts, finalType) {
   for (let i = 0; i < parts.length; i++) {
     setTokenClassification(state, parts[i], i === parts.length - 1 ? finalType : "namespace");
@@ -517,6 +584,8 @@ function parseType(state, stopPredicate) {
       skipNewlines(state);
       if (isTokenValue(peek(state), "*")) {
         consume(state);
+      } else if (isTypeStartToken(peek(state))) {
+        parseTypeSequence(new Set(["]"]));
       } else if (!isTokenValue(peek(state), "]")) {
         let depth = 1;
         while (!isAtEnd(state) && depth > 0) {
@@ -547,6 +616,11 @@ function parseType(state, stopPredicate) {
     }
 
     if (isKeyword(current, "const")) {
+      consume(state);
+      continue;
+    }
+
+    if (isKeyword(current, "dyn")) {
       consume(state);
       continue;
     }
@@ -733,6 +807,70 @@ function parseFieldDeclaration(state) {
   consumeLineEnd(state);
 }
 
+function parseGlobalDeclaration(state, scope) {
+  consume(state);
+
+  const nameToken = peek(state);
+  if (!nameToken || nameToken.kind !== "identifier") {
+    skipExpression(state, { stopAtLineEnd: true, stopAtClosingBrace: true });
+    consumeLineEnd(state);
+    return;
+  }
+
+  consume(state);
+  declareSymbol(state, scope, nameToken, "variable");
+
+  if (!isTokenValue(peek(state), "=") && !isLineBreakToken(peek(state))) {
+    parseType(state, token => !token || token.kind === "newline" || token.value === "=");
+  }
+
+  if (isTokenValue(peek(state), "=")) {
+    consume(state);
+    skipExpression(state, { stopAtLineEnd: true, stopAtClosingBrace: true });
+  }
+
+  consumeLineEnd(state);
+}
+
+function parseGenericParameters(state, scope) {
+  if (!isTokenValue(peek(state), "[")) {
+    return;
+  }
+
+  consume(state);
+  while (!isAtEnd(state) && !isTokenValue(peek(state), "]")) {
+    skipNewlines(state);
+    if (isTokenValue(peek(state), ",")) {
+      consume(state);
+      continue;
+    }
+
+    const nameToken = peek(state);
+    if (nameToken?.kind === "identifier") {
+      consume(state);
+      declareSymbol(state, scope, nameToken, "type");
+      skipNewlines(state);
+      if (!isTokenValue(peek(state), ",") && !isTokenValue(peek(state), "]")) {
+        parseType(state, token => !token || token.value === "," || token.value === "]");
+      }
+    } else {
+      const parsedName = parseType(state, token => !token || token.value === "," || token.value === "]");
+      if (!parsedName) {
+        consume(state);
+      }
+    }
+
+    skipNewlines(state);
+    if (isTokenValue(peek(state), ",")) {
+      consume(state);
+    }
+  }
+
+  if (isTokenValue(peek(state), "]")) {
+    consume(state);
+  }
+}
+
 function parseParameters(state, parameterScope) {
   if (!isTokenValue(peek(state), "(")) {
     return;
@@ -799,6 +937,72 @@ function parseBlock(state, parentScope) {
   parseBlockContents(state, scope);
 }
 
+function parseTraitBody(state, scope) {
+  const open = consume(state);
+  if (!open || open.value !== "{") {
+    scope.end = open ? open.ordinal : scope.start;
+    return;
+  }
+
+  while (!isAtEnd(state)) {
+    skipNewlines(state);
+    if (isTokenValue(peek(state), "}")) {
+      scope.end = consume(state).ordinal + 1;
+      return;
+    }
+    parseTagLines(state);
+    if (isTokenValue(peek(state), "}")) {
+      scope.end = consume(state).ordinal + 1;
+      return;
+    }
+
+    if (
+      isKeyword(peek(state), "def") ||
+      (isKeyword(peek(state), "set") && isKeyword(peek(state, 1), "def"))
+    ) {
+      parseFunction(state, scope, true);
+    } else {
+      skipExpression(state, { stopAtLineEnd: true, stopAtClosingBrace: true });
+      consumeLineEnd(state);
+    }
+  }
+
+  scope.end = state.tokens.length;
+}
+
+function parseImplBody(state, scope) {
+  const open = consume(state);
+  if (!open || open.value !== "{") {
+    scope.end = open ? open.ordinal : scope.start;
+    return;
+  }
+
+  while (!isAtEnd(state)) {
+    skipNewlines(state);
+    if (isTokenValue(peek(state), "}")) {
+      scope.end = consume(state).ordinal + 1;
+      return;
+    }
+    parseTagLines(state);
+    if (isTokenValue(peek(state), "}")) {
+      scope.end = consume(state).ordinal + 1;
+      return;
+    }
+
+    if (
+      isKeyword(peek(state), "def") ||
+      (isKeyword(peek(state), "set") && isKeyword(peek(state, 1), "def"))
+    ) {
+      parseFunction(state, scope, true);
+    } else {
+      skipExpression(state, { stopAtLineEnd: true, stopAtClosingBrace: true });
+      consumeLineEnd(state);
+    }
+  }
+
+  scope.end = state.tokens.length;
+}
+
 function parseFunction(state, parentScope, inStruct) {
   if (isKeyword(peek(state), "set") && isKeyword(peek(state, 1), "def")) {
     consume(state);
@@ -820,6 +1024,7 @@ function parseFunction(state, parentScope, inStruct) {
   }
 
   const functionScope = createScope(parentScope, nameToken.ordinal);
+  parseGenericParameters(state, functionScope);
   parseParameters(state, functionScope);
 
   skipNewlines(state);
@@ -846,18 +1051,21 @@ function parseStruct(state, scope) {
 
   consume(state);
   declareSymbol(state, scope, nameToken, "type");
+  const structScope = createScope(scope, nameToken.ordinal);
+  parseGenericParameters(state, structScope);
 
   if (isTokenValue(peek(state), "{") && peek(state).line === nameToken.line) {
+    structScope.start = peek(state).ordinal;
     consume(state);
     while (!isAtEnd(state)) {
       skipNewlines(state);
       if (isTokenValue(peek(state), "}")) {
-        consume(state);
+        structScope.end = consume(state).ordinal + 1;
         return;
       }
       parseTagLines(state);
       if (isTokenValue(peek(state), "}")) {
-        consume(state);
+        structScope.end = consume(state).ordinal + 1;
         return;
       }
 
@@ -865,14 +1073,75 @@ function parseStruct(state, scope) {
         isKeyword(peek(state), "def") ||
         (isKeyword(peek(state), "set") && isKeyword(peek(state, 1), "def"))
       ) {
-        parseFunction(state, scope, true);
+        parseFunction(state, structScope, true);
       } else {
         parseFieldDeclaration(state);
       }
     }
+    structScope.end = state.tokens.length;
     return;
   }
 
+  structScope.end = structScope.start;
+  consumeLineEnd(state);
+}
+
+function parseTrait(state, scope) {
+  consume(state);
+  const nameToken = peek(state);
+  if (!nameToken || nameToken.kind !== "identifier") {
+    consumeLineEnd(state);
+    return;
+  }
+
+  consume(state);
+  declareSymbol(state, scope, nameToken, "type");
+  const traitScope = createScope(scope, nameToken.ordinal);
+
+  if (isTokenValue(peek(state), "{") && peek(state).line === nameToken.line) {
+    traitScope.start = peek(state).ordinal;
+    parseTraitBody(state, traitScope);
+    return;
+  }
+
+  traitScope.end = traitScope.start;
+  consumeLineEnd(state);
+}
+
+function parseImpl(state, scope) {
+  const implToken = consume(state);
+  const implScope = createScope(scope, implToken?.ordinal ?? scope.end);
+  parseGenericParameters(state, implScope);
+  skipNewlines(state);
+
+  parseType(
+    state,
+    token =>
+      !token ||
+      token.kind === "newline" ||
+      token.value === ":" ||
+      isKeyword(token, "for") ||
+      token.value === "{"
+  );
+
+  skipNewlines(state);
+  if (isKeyword(peek(state), "for")) {
+    consume(state);
+    skipNewlines(state);
+    parseType(state, token => !token || token.kind === "newline" || token.value === "{");
+  } else if (isTokenValue(peek(state), ":")) {
+    consume(state);
+    skipNewlines(state);
+    parseType(state, token => !token || token.kind === "newline" || token.value === "{");
+  }
+
+  if (isTokenValue(peek(state), "{")) {
+    implScope.start = peek(state).ordinal;
+    parseImplBody(state, implScope);
+    return;
+  }
+
+  implScope.end = implScope.start;
   consumeLineEnd(state);
 }
 
@@ -972,6 +1241,21 @@ function parseStatement(state, scope, inStruct) {
     return;
   }
 
+  if (isKeyword(token, "global")) {
+    parseGlobalDeclaration(state, scope);
+    return;
+  }
+
+  if (isKeyword(token, "trait")) {
+    parseTrait(state, scope);
+    return;
+  }
+
+  if (isKeyword(token, "impl")) {
+    parseImpl(state, scope);
+    return;
+  }
+
   if (isKeyword(token, "def") || (isKeyword(token, "set") && isKeyword(peek(state, 1), "def"))) {
     parseFunction(state, scope, inStruct);
     return;
@@ -1047,22 +1331,40 @@ function classifyMemberAccess(state, token) {
   }
 
   const next = nextSignificant(state.tokens, token.ordinal);
+  const effectiveNext = isTokenValue(next, "[") ? nextAfterBracketSuffix(state.tokens, token.ordinal) : next;
   const dotToken = previousSignificant(state.tokens, token.ordinal);
   const ownerToken = dotToken ? previousSignificant(state.tokens, dotToken.ordinal) : null;
   const ownerSymbol = ownerToken ? resolveSymbol(state.rootScope, token.ordinal, ownerToken.value) : null;
+  const localSymbol = resolveSymbol(state.rootScope, token.ordinal, token.value);
 
   if (ownerSymbol?.kind === "namespace") {
-    if (isTokenValue(next, ".")) {
+    if (isTokenValue(effectiveNext, ".")) {
+      if (localSymbol?.kind === "type") {
+        return "type";
+      }
+
+      const nextMember = effectiveNext ? nextSignificant(state.tokens, effectiveNext.ordinal) : null;
+      const nextMemberEnd =
+        nextMember && isTokenValue(nextSignificant(state.tokens, nextMember.ordinal), "[")
+          ? nextAfterBracketSuffix(state.tokens, nextMember.ordinal)
+          : nextSignificant(state.tokens, nextMember?.ordinal ?? -1);
+      if (nextMember?.kind === "identifier" && isTokenValue(nextMemberEnd, "(")) {
+        return "type";
+      }
+
       return "namespace";
     }
-    const localSymbol = resolveSymbol(state.rootScope, token.ordinal, token.value);
     if (localSymbol?.kind === "type") {
       return "type";
     }
-    return isTokenValue(next, "(") ? "function" : "namespace";
+    return isTokenValue(effectiveNext, "(") ? "function" : "namespace";
   }
 
-  return isTokenValue(next, "(") ? "function" : "variable";
+  if (localSymbol?.kind === "type" && isTokenValue(effectiveNext, ".")) {
+    return "type";
+  }
+
+  return isTokenValue(effectiveNext, "(") ? "function" : "variable";
 }
 
 function classifyIdentifierUsage(state, token) {
@@ -1076,6 +1378,7 @@ function classifyIdentifierUsage(state, token) {
 
   const previous = previousSignificant(state.tokens, token.ordinal);
   const next = nextSignificant(state.tokens, token.ordinal);
+  const effectiveNext = isTokenValue(next, "[") ? nextAfterBracketSuffix(state.tokens, token.ordinal) : next;
 
   if (isTokenValue(previous, ".")) {
     return { type: classifyMemberAccess(state, token), modifiers: [] };
@@ -1083,55 +1386,33 @@ function classifyIdentifierUsage(state, token) {
 
   const symbol = resolveSymbol(state.rootScope, token.ordinal, token.value);
 
+  if (isTokenValue(previous, "@")) {
+    if (symbol?.kind === "namespace") {
+      return { type: "namespace", modifiers: [] };
+    }
+    return { type: "function", modifiers: [] };
+  }
+
   if (isTokenValue(next, "&<")) {
     return { type: "function", modifiers: [] };
   }
 
-  if (isTokenValue(next, ".")) {
-    if (symbol?.kind === "namespace") {
-      return { type: "namespace", modifiers: [] };
-    }
-    if (symbol?.kind === "type") {
-      return { type: "type", modifiers: [] };
-    }
-    if (symbol?.kind === "parameter") {
-      return { type: "parameter", modifiers: symbol.readonly ? ["readonly"] : [] };
-    }
-    if (symbol?.kind === "variable") {
-      return { type: "variable", modifiers: symbol.readonly ? ["readonly"] : [] };
+  if (isTokenValue(effectiveNext, ".")) {
+    const symbolUsage = getSymbolClassification(symbol);
+    if (symbolUsage) {
+      return symbolUsage;
     }
   }
 
-  if (isTokenValue(next, "(")) {
-    if (symbol?.kind === "type") {
-      return { type: "type", modifiers: [] };
-    }
-    if (symbol?.kind === "function") {
-      return { type: "function", modifiers: [] };
-    }
-    if (symbol?.kind === "parameter") {
-      return { type: "parameter", modifiers: symbol.readonly ? ["readonly"] : [] };
-    }
-    if (symbol?.kind === "variable") {
-      return { type: "variable", modifiers: symbol.readonly ? ["readonly"] : [] };
+  if (isTokenValue(effectiveNext, "(")) {
+    const symbolUsage = getSymbolClassification(symbol);
+    if (symbolUsage) {
+      return symbolUsage;
     }
     return null;
   }
 
-  if (symbol?.kind === "namespace") {
-    return { type: "namespace", modifiers: [] };
-  }
-  if (symbol?.kind === "type") {
-    return { type: "type", modifiers: [] };
-  }
-  if (symbol?.kind === "parameter") {
-    return { type: "parameter", modifiers: symbol.readonly ? ["readonly"] : [] };
-  }
-  if (symbol?.kind === "variable") {
-    return { type: "variable", modifiers: symbol.readonly ? ["readonly"] : [] };
-  }
-
-  return null;
+  return getSymbolClassification(symbol);
 }
 
 function analyzeLona(text) {

@@ -15,6 +15,15 @@
       "include": "#import-statement"
     },
     {
+      "include": "#global-declaration"
+    },
+    {
+      "include": "#trait-declaration"
+    },
+    {
+      "include": "#impl-declaration"
+    },
+    {
       "include": "#function-declaration"
     },
     {
@@ -191,8 +200,20 @@
           "match": "\\bstruct\\b"
         },
         {
+          "name": "storage.type.trait.lona",
+          "match": "\\btrait\\b"
+        },
+        {
+          "name": "keyword.declaration.impl.lona",
+          "match": "\\bimpl\\b"
+        },
+        {
           "name": "storage.type.variable.lona",
           "match": "\\bvar\\b"
+        },
+        {
+          "name": "storage.type.variable.lona",
+          "match": "\\bglobal\\b"
         },
         {
           "name": "keyword.control.conditional.lona",
@@ -207,8 +228,16 @@
           "match": "\\bimport\\b"
         },
         {
+          "name": "keyword.other.set.lona",
+          "match": "\\bset\\b"
+        },
+        {
           "name": "storage.modifier.lona",
-          "match": "\\b(?:set|ref|const)\\b"
+          "match": "\\b(?:ref|const)\\b"
+        },
+        {
+          "name": "storage.modifier.dynamic.lona",
+          "match": "\\bdyn\\b"
         },
         {
           "name": "keyword.operator.cast.lona",
@@ -302,18 +331,122 @@
         }
       ]
     },
-    "struct-declaration": {
+    "global-declaration": {
+      "begin": "\\b(global)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.variable.lona"
+        },
+        "2": {
+          "name": "variable.other.definition.lona"
+        }
+      },
+      "end": "(?=\\s*(?:=|$))",
       "patterns": [
         {
-          "match": "\\b(struct)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "include": "#comments"
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "struct-declaration": {
+      "begin": "\\b(struct)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.struct.lona"
+        },
+        "2": {
+          "name": "entity.name.type.struct.lona"
+        }
+      },
+      "end": "(?=\\{|$)",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#generic-parameters"
+        }
+      ]
+    },
+    "trait-declaration": {
+      "begin": "\\b(trait)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "beginCaptures": {
+        "1": {
+          "name": "storage.type.trait.lona"
+        },
+        "2": {
+          "name": "entity.name.type.trait.lona"
+        }
+      },
+      "end": "(?=\\{|$)",
+      "patterns": [
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "impl-declaration": {
+      "begin": "\\b(impl)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.declaration.impl.lona"
+        }
+      },
+      "end": "(?=\\{|$)",
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "include": "#generic-parameters"
+        },
+        {
+          "name": "keyword.control.impl.lona",
+          "match": "\\bfor\\b"
+        },
+        {
+          "name": "punctuation.separator.type.lona",
+          "match": ":"
+        },
+        {
+          "include": "#type-expression"
+        }
+      ]
+    },
+    "generic-parameters": {
+      "begin": "\\[",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.type-parameters.begin.lona"
+        }
+      },
+      "end": "\\]",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.type-parameters.end.lona"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)(?=\\s*(?:,|\\])|\\s+[A-Za-z_][A-Za-z0-9_]*(?:\\.|\\b))",
           "captures": {
             "1": {
-              "name": "storage.type.struct.lona"
-            },
-            "2": {
-              "name": "entity.name.type.struct.lona"
+              "name": "entity.name.type.type-parameter.lona"
             }
           }
+        },
+        {
+          "include": "#type-expression"
+        },
+        {
+          "name": "punctuation.separator.type-parameter.lona",
+          "match": ","
         }
       ]
     },
@@ -321,7 +454,7 @@
       "begin": "\\b(set\\b\\s+)?(def)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
       "beginCaptures": {
         "1": {
-          "name": "storage.modifier.set.lona"
+          "name": "keyword.other.set.lona"
         },
         "2": {
           "name": "storage.type.function.lona"
@@ -334,6 +467,9 @@
       "patterns": [
         {
           "include": "#comments"
+        },
+        {
+          "include": "#generic-parameters"
         },
         {
           "begin": "\\(",
@@ -397,22 +533,26 @@
       ]
     },
     "variable-declaration": {
-      "begin": "\\b(var)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
-      "beginCaptures": {
-        "1": {
-          "name": "storage.type.variable.lona"
-        },
-        "2": {
-          "name": "variable.other.definition.lona"
-        }
-      },
-      "end": "(?=\\s*(?:=|$))",
       "patterns": [
         {
-          "include": "#comments"
-        },
-        {
-          "include": "#type-expression"
+          "begin": "\\b(var)\\b\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "beginCaptures": {
+            "1": {
+              "name": "storage.type.variable.lona"
+            },
+            "2": {
+              "name": "variable.other.definition.lona"
+            }
+          },
+          "end": "(?=\\s*(?:=|$))",
+          "patterns": [
+            {
+              "include": "#comments"
+            },
+            {
+              "include": "#type-expression"
+            }
+          ]
         }
       ]
     },
@@ -492,10 +632,10 @@
     "field-declaration": {
       "patterns": [
         {
-          "begin": "^\\s*(?!set\\b\\s+def\\b)(?!(?:var|const|ref|def|if|for|ret|break|continue|import|struct|else)\\b)(set\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*|_)(?=\\s+(?:<|\\(|\\b(?:type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool)\\b|[A-Za-z_][A-Za-z0-9_]*(?:\\.|\\b)))",
+          "begin": "^\\s*(?!set\\b\\s+def\\b)(?!(?:var|global|const|ref|def|if|for|ret|break|continue|import|struct|else)\\b)(set\\b\\s+)?([A-Za-z_][A-Za-z0-9_]*|_)(?=\\s+(?:<|\\(|\\b(?:type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool)\\b|[A-Za-z_][A-Za-z0-9_]*(?:\\.|\\b)))",
           "beginCaptures": {
             "1": {
-              "name": "storage.modifier.set.lona"
+              "name": "keyword.other.set.lona"
             },
             "2": {
               "name": "variable.other.member.definition.lona"
@@ -601,6 +741,10 @@
           "match": "\\bconst\\b"
         },
         {
+          "name": "storage.modifier.dynamic.lona",
+          "match": "\\bdyn\\b"
+        },
+        {
           "match": "\\b([A-Za-z_][A-Za-z0-9_]*)(\\.)",
           "captures": {
             "1": {
@@ -633,7 +777,7 @@
       "patterns": [
         {
           "name": "entity.name.function.member.lona",
-          "match": "(?<=\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*\\()"
+          "match": "(?<=\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\s*(?:\\(|\\[))"
         }
       ]
     },
@@ -641,7 +785,7 @@
       "patterns": [
         {
           "name": "variable.other.object.lona",
-          "match": "\\b(?!(?:def|struct|var|set|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\.)"
+          "match": "\\b(?!(?:def|struct|trait|impl|var|global|set|ret|break|continue|if|else|for|import|ref|const|cast|dyn|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)[A-Za-z_][A-Za-z0-9_]*\\b(?=\\.)"
         }
       ]
     },
@@ -649,7 +793,7 @@
       "patterns": [
         {
           "name": "variable.other.readwrite.lona",
-          "match": "\\b(?!(?:def|struct|var|set|ret|break|continue|if|else|for|import|ref|const|cast|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)(?<!\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?!\\s*(?:[:.(]|&<))"
+          "match": "\\b(?!(?:def|struct|trait|impl|var|global|set|ret|break|continue|if|else|for|import|ref|const|cast|dyn|true|false|null|type|u8|i8|u16|i16|u32|i32|u64|i64|int|uint|f32|f64|bool|self)\\b)(?<!\\.)[A-Za-z_][A-Za-z0-9_]*\\b(?!\\s*(?:[:.(]|&<))"
         }
       ]
     },

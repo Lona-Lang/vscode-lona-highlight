@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.4
+
+- Fixed keyword highlighting for `set` by switching it to a broader `keyword.*` scope that common VS Code themes color reliably.
+- Added TextMate and semantic highlighting support for `global` declarations.
+- Added regression coverage for top-level `global` bindings.
+
 ## 0.0.3
 
 - Expanded TextMate grammar coverage for `set`, `const`, `ref`, `:=`, named arguments, character literals, function pointer references, and richer type expressions.
 - Reworked semantic token analysis to handle multiline signatures, scope-aware declarations, complex type strings, methods, properties, readonly bindings, and namespace-qualified symbols.
 - Added semantic regression tests covering complex Lona syntax and updated project documentation for development and release workflow.
+- Added highlighting support for `trait`, `impl`, `dyn`, trait-qualified calls, and single-bound generic declaration headers on `struct`, `def`, and `impl`.
 
 ## 0.0.2
 
